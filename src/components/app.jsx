@@ -40,7 +40,7 @@ export default class extends React.Component {
       f7params: {
         name: NAME_APP, // App name
         theme: "auto", // Automatic theme detection
-        id: "vn.cser",
+        id: "com.baamdspa",
         // App routes
         routes: routes,
         on: {
