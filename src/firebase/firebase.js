@@ -3,13 +3,14 @@ import { getAuth } from 'firebase/auth';
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBOuJ19sg_yuRvrNZ5wo6rW8uGylsnVkws",
-    authDomain: "cser-d0ce7.firebaseapp.com",
-    databaseURL: "https://cser-d0ce7.firebaseio.com",
-    projectId: "cser-d0ce7",
-    storageBucket: "cser-d0ce7.appspot.com",
-    messagingSenderId: "1087460686681",
-    appId: "1:1087460686681:web:5ecbbb8bcd5596faf3aa48"
+    apiKey: "AIzaSyDBEkG1zcG5WtaMxXgNdTKdn90cgIGr7SI",
+    authDomain: "amdspa-9ac19.firebaseapp.com",
+    databaseURL: "https://amdspa-9ac19.firebaseio.com",
+    projectId: "amdspa-9ac19",
+    storageBucket: "amdspa-9ac19.appspot.com",
+    messagingSenderId: "659913329566",
+    appId: "1:659913329566:web:73a74972cf8d54cf89648f",
+    measurementId: "G-YFFY79H7HQ"
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
