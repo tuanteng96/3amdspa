@@ -435,6 +435,7 @@ export default class extends React.Component {
                 this.setState({
                   loadingBtn: false,
                   popupOpened: false,
+                  voucherSearch: ""
                 });
               });
             });

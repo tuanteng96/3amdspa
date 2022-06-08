@@ -146,7 +146,6 @@ export default class employeeStatistical extends React.Component {
         step: 1,
       },
     };
-    console.log(dataSalary);
     return (
       <Page
         name="employee-statistical"
@@ -262,7 +261,6 @@ export default class employeeStatistical extends React.Component {
                         </div>
                       </div>
                     ))}
-                  {console.log(dataSalary)}
                   {dataSalary &&
                     this.totalDayOff(dataSalary.DS_NGAY_NGHI) -
                       dataSalary.NGAY_NGHI_CHO_PHEP >

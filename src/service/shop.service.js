@@ -59,6 +59,9 @@ class ShopDataService {
     getOrder({ USN, PWD, OrderID }) {
         return http.get(`/app/index.aspx?cmd=getOrder&OrderID=${OrderID}&USN=${USN}&PWD=${PWD}&IsUser=0`);
     }
+    finishOrder({ USN, PWD, data }) {
+        return http.post(`/app/index.aspx?cmd=finish_OrderAdd&USN=${USN}&PWD=${PWD}&IsUser=0`, data);
+    }
     getUpdateOrder(data) {
         return http.post(`/api/v3/orderclient?cmd=get&token=${getToken()}`, data);
     }

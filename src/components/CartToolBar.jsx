@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "framework7-react";
-import { getUser } from "../constants/user";
+import { getOrderAddID, getPassword, getUser } from "../constants/user";
 import ShopDataService from "../service/shop.service";
 import { GrCart } from "react-icons/gr";
 
@@ -21,20 +21,18 @@ export default class CartToolBar extends React.Component {
     }
 
     const data = {
-      order: {
-        ID: 0,
-        SenderID: infoUser.ID,
-        VCode: null,
-      },
-      addProps: "ProdTitle",
+      USN: infoUser.MobilePhone,
+      PWD: getPassword(),
+      OrderID: getOrderAddID(),
     };
-    ShopDataService.getUpdateOrder(data)
+    ShopDataService.getOrder(data)
       .then((response) => {
-        const { items } = response.data.data;
-        if (items && items.length > 0) {
+        if (!response.error) {
+          const { Items} = response.data;
           this.setState({
-            countOrder: items.length,
+            countOrder: Items && Items.length,
           });
+          callback && callback();
         }
       })
       .catch((er) => console.log(er));

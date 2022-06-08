@@ -1,7 +1,7 @@
 import React from "react";
 import { SERVER_APP } from "./../../constants/config";
 import { formatPriceVietnamese } from "../../constants/format";
-import { getStockIDStorage, getUser } from "../../constants/user";
+import { getOrderAddID, getPassword, getStockIDStorage, getUser, removeOrderAddID } from "../../constants/user";
 import ShopDataService from "./../../service/shop.service";
 import { Page, Link, Navbar } from "framework7-react";
 import NotificationIcon from "../../components/NotificationIcon";
@@ -16,43 +16,40 @@ export default class extends React.Component {
   constructor() {
     super();
     this.state = {
-      dfItem: [],
       items: [],
       order: [],
-      deletedsOrder: [],
-      editsOrder: [],
       noteOrder: "",
       isLoading: true,
       isBtn: false,
+      WalletPaySuccess: 0,
     };
   }
   componentDidMount() {
     this.getOrder();
   }
-  getOrder = () => {
+  getOrder = (callback) => {
     const infoUser = getUser();
     if (!infoUser) {
       this.$f7router.navigate("/login/");
       return false;
     }
+
     const data = {
-      order: {
-        ID: 0,
-        SenderID: infoUser.ID,
-      },
-      addProps: "ProdTitle",
+      USN: infoUser.MobilePhone,
+      PWD: getPassword(),
+      OrderID: getOrderAddID(),
     };
-    ShopDataService.getUpdateOrder(data)
+    ShopDataService.getOrder(data)
       .then((response) => {
-        const data = response.data.data;
-        if (response.data.success) {
-          //Total
+        if (response.status === 200) {
+          const { Items, Order, Money } = response.data;
           this.setState({
-            dfItem: data.dfItem,
-            items: data.items.reverse(),
-            order: data.order,
+            items: Items,
+            order: Order,
             isLoading: false,
+            WalletPaySuccess: Money,
           });
+          callback && callback();
         }
       })
       .catch((er) => console.log(er));
@@ -61,38 +58,32 @@ export default class extends React.Component {
   handleSubmit = () => {
     const { order, noteOrder } = this.state;
     const infoUser = getUser();
-    const stockid = getStockIDStorage();
     const self = this;
     this.setState({
       isBtn: true,
     });
-    const data = {
-      order: {
-        ID: order.ID,
-        SenderID: infoUser.ID,
-        Status: "user_sent",
-        SenderOther: noteOrder,
-      },
-      forceStockID: stockid,
-    };
+    var bodyPost = new FormData();
+    bodyPost.append("cmd", "voucher_OrderAdd");
+    bodyPost.append("SenderOther", noteOrder);
+    bodyPost.append("OrderAddID", getOrderAddID());
     self.$f7.preloader.show();
-    ShopDataService.getUpdateOrder(data)
-      .then((response) => {
-        const data = response.data.data;
-        if (response.data.success) {
-          setTimeout(() => {
-            toast.success("Đặt hàng thành công !", {
-              position: toast.POSITION.TOP_LEFT,
-              autoClose: 3000,
-            });
-            this.$f7router.navigate(
-              "/pay-success/" + data.order.ID + `/?money=${data.order.ToPay}`
-            );
-            self.$f7.preloader.hide();
-          }, 1000);
-        }
-      })
-      .catch((er) => console.log(er));
+    ShopDataService.finishOrder({
+      USN: infoUser.MobilePhone,
+      PWD: getPassword(),
+      data: bodyPost,
+    }).then((response) => {
+      if (!response.error) {
+        toast.success("Đặt hàng thành công !", {
+          position: toast.POSITION.TOP_LEFT,
+          autoClose: 3000,
+        });
+        removeOrderAddID();
+        this.$f7router.navigate(
+          "/pay-success/" + order.ID + `/?money=${order.EndPay}`
+        );
+        self.$f7.preloader.hide();
+      }
+    }).catch((er) => console.log(er));
   };
 
   handleNote = (value) => {
@@ -155,28 +146,28 @@ export default class extends React.Component {
                 <div className="page-pay__list page-pay__list2">
                   {items.length > 0
                     ? items &&
-                      items.map((item, index) => (
-                        <div className="page-pay__list-item" key={index}>
-                          <div className="image">
-                            <img
-                              src={
-                                SERVER_APP + "/Upload/image/" + item.ProdThumb
-                              }
-                              alt={item.ProdTitle}
-                            />
-                          </div>
-                          <div className="info">
-                            <h3>{item.ProdTitle}</h3>
-                            <div className="info-price">
-                              <p className="price-p">
-                                {formatPriceVietnamese(item.ToPay)}
-                                <b>₫</b>
-                              </p>
-                              <p className="qty">x{item.Qty}</p>
-                            </div>
+                    items.map((item, index) => (
+                      <div className="page-pay__list-item" key={index}>
+                        <div className="image">
+                          <img
+                            src={
+                              SERVER_APP + "/Upload/image/" + item.ProdThumb
+                            }
+                            alt={item.ProdTitle}
+                          />
+                        </div>
+                        <div className="info">
+                          <h3>{item.ProdTitle}</h3>
+                          <div className="info-price">
+                            <p className="price-p">
+                              {formatPriceVietnamese(item.ToPay)}
+                              <b>₫</b>
+                            </p>
+                            <p className="qty">x{item.Qty}</p>
                           </div>
                         </div>
-                      ))
+                      </div>
+                    ))
                     : "Chưa có đơn hàng"}
                 </div>
               )}
@@ -264,7 +255,7 @@ export default class extends React.Component {
                     </div>
                   </div>
                 </li>
-                {/* <li className="wallet">
+                <li className="wallet">
                   <div className="title">
                     <svg
                       width={18}
@@ -294,19 +285,19 @@ export default class extends React.Component {
                     <div className="box-text p-0">
                       {
                         <span className="vcode">
-                          -{formatPriceVietnamese(order && order.MMPayed)}
+                          {formatPriceVietnamese(order?.PayByMemberMoneyValue)}
                           <b>₫</b>
                         </span>
                       }
                     </div>
                   </div>
-                </li> */}
+                </li>
                 <li className="total">
                   <div className="title">
                     Thành tiền :
                     <span>
                       {formatPriceVietnamese(
-                        order && Math.abs(order.RemainPay)
+                        Math.abs(order?.EndPay || 0)
                       )}
                       <b>₫</b>
                     </span>

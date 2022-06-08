@@ -5,18 +5,21 @@ export const getNotiID = () => {
     else return null;
 }
 export const setNotiID = (id) => {
-        localStorage.setItem('NOTI_ID', id);
-    }
-    // return the user data from the storage
+    localStorage.setItem('NOTI_ID', id);
+}
+// return the user data from the storage
 export const getOrderAddID = () => {
     const ID = localStorage.getItem('OrderAddID');
     if (!ID) return 0;
     else return Number(ID);
 }
 export const addOrderAddID = (id) => {
-        localStorage.setItem('OrderAddID', id);
-    }
-    // return the user data from the storage
+    localStorage.setItem('OrderAddID', id);
+}
+export const removeOrderAddID = () => {
+    localStorage.removeItem('OrderAddID');
+}
+// return the user data from the storage
 export const getUser = () => {
     const userStr = localStorage.getItem('user');
     if (userStr) return JSON.parse(userStr);
@@ -25,9 +28,9 @@ export const getUser = () => {
 
 // return the password from the storage
 export const getPassword = () => {
-        return localStorage.getItem('password') || null;
-    }
-    // return the token from the storage
+    return localStorage.getItem('password') || null;
+}
+// return the token from the storage
 export const getToken = () => {
     return localStorage.getItem('token') || null;
 }
@@ -41,36 +44,36 @@ export const removeUserStorage = () => {
 
 // set the token and user from the storage
 export const setUserStorage = (token, user, pwd) => {
-        localStorage.setItem('token', token);
-        localStorage.setItem('password', pwd);
-        localStorage.setItem('user', JSON.stringify(user));
-        //localStorage.setItem('password', password);
-    }
-    // get Stock
+    localStorage.setItem('token', token);
+    localStorage.setItem('password', pwd);
+    localStorage.setItem('user', JSON.stringify(user));
+    //localStorage.setItem('password', password);
+}
+// get Stock
 export const getStockIDStorage = () => {
-        return localStorage.getItem('CurrentStockID') || null;
-    }
-    // set Stock
+    return localStorage.getItem('CurrentStockID') || null;
+}
+// set Stock
 export const setStockIDStorage = (stockID) => {
-        localStorage.setItem('CurrentStockID', stockID);
-    }
-    // remove Stock
+    localStorage.setItem('CurrentStockID', stockID);
+}
+// remove Stock
 export const removeStockIDStorage = () => {
-        localStorage.removeItem('CurrentStockID');
-    }
-    // get Stock
+    localStorage.removeItem('CurrentStockID');
+}
+// get Stock
 export const getStockNameStorage = () => {
-        return localStorage.getItem('CurrentStockName') || null;
-    }
-    // set Stock
+    return localStorage.getItem('CurrentStockName') || null;
+}
+// set Stock
 export const setStockNameStorage = (stockName) => {
-        localStorage.setItem('CurrentStockName', stockName);
-    }
-    // remove Stock
+    localStorage.setItem('CurrentStockName', stockName);
+}
+// remove Stock
 export const removeStockNameStorage = () => {
-        localStorage.removeItem('CurrentStockName');
-    }
-    //reg notification user
+    localStorage.removeItem('CurrentStockName');
+}
+//reg notification user
 export const subscribe = (rt) => {
     //nếu chưa có key subscribe => ios iphone 8 lỗi
     //vì vậy cần 1 bước phụ để xác định đã có key subscribe=> để unsubscribe
@@ -96,22 +99,22 @@ export const subscribe = (rt) => {
 }
 
 export const app_request = (cmd, value) => {
-        if (window['ANDROID']) {
-            ANDROID.Do(cmd, value);
-        } else {
-            window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.IOS.postMessage({
-                "cmd": cmd,
-                "value": value
-            })
-        }
+    if (window['ANDROID']) {
+        ANDROID.Do(cmd, value);
+    } else {
+        window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.IOS.postMessage({
+            "cmd": cmd,
+            "value": value
+        })
     }
-    // return the search data from the storage
+}
+// return the search data from the storage
 export const getKeySearch = () => {
-        const dataKey = localStorage.getItem('keysearch');
-        if (dataKey) return JSON.parse(dataKey);
-        else return null;
-    }
-    // set the token and user from the storage
+    const dataKey = localStorage.getItem('keysearch');
+    if (dataKey) return JSON.parse(dataKey);
+    else return null;
+}
+// set the token and user from the storage
 export const setKeySearch = (key) => {
     const dataKey = localStorage.getItem('keysearch');
     let arrSearch = [];

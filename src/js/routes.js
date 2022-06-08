@@ -76,7 +76,7 @@ const checkRouterHome = () => {
 
     if (ACC_TYPE === "U") {
         if (infoUser.ID === 1) {
-            return ReportingDatePage;
+            return EmployeeStatisticalPage;
         } else {
             const groupRole = infoUser.GroupTitles;
             if (groupRole.includes("service")) {

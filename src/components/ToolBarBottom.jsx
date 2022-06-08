@@ -133,14 +133,14 @@ export default class ToolBarCustom extends React.Component {
         return (
           <React.Fragment>
             <PrivateNav
-              className="page-toolbar-bottom__link js-toolbar-link"
+              className="page-toolbar-bottom__link js-toolbar-link js-link-home"
               icon="las la-piggy-bank"
               text="Thống kê"
               roles={[]}
               href="/employee/statistical/"
             />
             <PrivateNav
-              className="page-toolbar-bottom__link js-toolbar-link js-link-home"
+              className="page-toolbar-bottom__link js-toolbar-link"
               icon="las la-chart-bar"
               text="Báo cáo"
               roles={[]}

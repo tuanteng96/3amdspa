@@ -27,7 +27,7 @@ module.exports = {
         path: resolvePath('www'),
         filename: 'js/[name].js',
         chunkFilename: 'js/[name].js',
-        publicPath: 'https://3amdspa.com/app2021/',
+        publicPath: '',
         hotUpdateChunkFilename: 'hot/hot-update.js',
         hotUpdateMainFilename: 'hot/hot-update.json',
     },
