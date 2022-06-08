@@ -656,7 +656,6 @@ export default class extends React.Component {
                   </div>
                   <div className="box">
                     <div className="box-text">
-                      {console.log(order)}
                       {!order || order?.VoucherCode === "" ? (
                         <div
                           onClick={
