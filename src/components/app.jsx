@@ -21,7 +21,7 @@ import {
   BlockFooter,
 } from "framework7-react";
 
-import { getUser, removeUserStorage, setUserStorage } from "../constants/user";
+import { getPassword, getUser, removeUserStorage, setUserStorage } from "../constants/user";
 import UserService from "../service/user.service";
 import { setNotiID, getNotiID } from "./../constants/user";
 
@@ -52,7 +52,7 @@ export default class extends React.Component {
                   removeUserStorage();
                 } else {
                   const data = response.data;
-                  setUserStorage(data.token, data);
+                  setUserStorage(data.token, data, getPassword());
                 }
               });
             }

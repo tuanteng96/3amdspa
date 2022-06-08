@@ -6,7 +6,12 @@ import {
 import { AiOutlineClose } from "react-icons/ai";
 import { iOS } from "../../constants/helpers";
 import imgCoupon from "../../assets/images/coupon_bg.svg";
-import { getStockIDStorage, getUser } from "../../constants/user";
+import {
+  getOrderAddID,
+  getPassword,
+  getStockIDStorage,
+  getUser,
+} from "../../constants/user";
 import ShopDataService from "./../../service/shop.service";
 import { Page, Link, Navbar, Popup } from "framework7-react";
 import { checkDateDiff } from "../../constants/format";
@@ -15,6 +20,7 @@ import SkeletonPay from "./components/Pay/SkeletonPay";
 import NumberFormat from "react-number-format";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import userService from "../../service/user.service";
 
 toast.configure();
 
@@ -24,7 +30,7 @@ export default class extends React.Component {
     this.state = {
       dfItem: [],
       items: [],
-      order: [],
+      order: null,
       voucherSearch: "",
       deletedsOrder: [],
       editsOrder: [],
@@ -59,6 +65,7 @@ export default class extends React.Component {
   };
 
   handleApply = () => {
+    const self = this;
     const { WalletMe, WalletPay } = this.state;
     if (WalletPay > WalletMe || WalletPay === 0) {
       toast.error("Số tiền thanh toán không hợp lệ !", {
@@ -66,9 +73,26 @@ export default class extends React.Component {
         autoClose: 3000,
       });
     } else {
-      this.setState({
-        WalletPaySuccess: WalletPay,
-        popupWalletOpened: false,
+      const infoUser = getUser();
+      var bodyPost = new FormData();
+      bodyPost.append("cmd", "membermoney_OrderAdd");
+      bodyPost.append("value", WalletPay);
+      bodyPost.append("OrderAddID", getOrderAddID());
+      self.$f7.preloader.show();
+
+      ShopDataService.payWalletOrder({
+        USN: infoUser.MobilePhone,
+        PWD: getPassword(),
+        data: bodyPost,
+      }).then(() => {
+        this.getOrder(() => {
+          this.getWalletTotal(() => {
+            self.$f7.preloader.hide();
+            this.setState({
+              popupWalletOpened: false,
+            });
+          });
+        });
       });
     }
   };
@@ -106,126 +130,96 @@ export default class extends React.Component {
     });
   };
 
-  IncrementItem = (ID) => {
+  IncrementItem = (item) => {
     //Tăng
-    const { items, editsOrder } = this.state;
+    const infoUser = getUser();
+    const self = this;
+    var bodyPost = new FormData();
+    bodyPost.append("cmd", "qty_OrderAdd");
+    bodyPost.append("qty", item.Qty + 1);
+    bodyPost.append("oid", item.ID);
+    bodyPost.append("OrderAddID", item.OrderID);
+    self.$f7.preloader.show();
 
-    const indexUpdate = items.findIndex((obj) => obj.ID === ID);
-    if (indexUpdate < 0) return;
-    const hisQty = items[indexUpdate].Qty;
-    const Price = items[indexUpdate].Price;
-    const PriceOrder = items[indexUpdate].PriceOrder;
-    const Qty = (items[indexUpdate].Qty = hisQty + 1);
-    items[indexUpdate].ToPay =
-      items[indexUpdate].Qty * (PriceOrder > 0 ? PriceOrder : Price);
-
-    const indexEdits = editsOrder.findIndex((item) => item.ID === ID);
-
-    let newItemEdits = [];
-    if (indexEdits < 0) {
-      const itemEdits = {
-        ID: ID,
-        Qty: Qty,
-      };
-      newItemEdits = [...editsOrder, itemEdits];
-      this.setState({
-        editsOrder: newItemEdits,
-        items: items,
+    ShopDataService.addQtyProduct({
+      USN: infoUser.MobilePhone,
+      PWD: getPassword(),
+      data: bodyPost,
+    }).then(() => {
+      this.getOrder(() => {
+        self.$f7.preloader.hide();
       });
-    } else {
-      editsOrder[indexEdits].Qty = Qty;
-      this.setState({
-        editsOrder: editsOrder,
-        items: items,
-      });
-    }
-
-    this.TotalProduct(items);
-    this.delayedClick();
+    });
   };
 
-  DecreaseItem = (ID) => {
+  DecreaseItem = (item) => {
     //Giảm
-
-    const $$this = this;
-    const { items, editsOrder, deletedsOrder } = this.state;
-    const indexUpdate = items.findIndex((obj) => obj.ID === ID);
-    if (indexUpdate < 0) return;
-    const hisQty = items[indexUpdate].Qty;
-    const Price = items[indexUpdate].Price;
-    const PriceOrder = items[indexUpdate].PriceOrder;
-
-    if (hisQty === 1) {
-      $$this.$f7.dialog.confirm("Xóa sản phẩm này ?", () => {
-        const itemsNew = items.filter((item) => item.ID !== ID);
-        const itemDelete = {
-          ID: ID,
-          Qty: hisQty,
-        };
-        let newItemDelete = [...deletedsOrder, itemDelete];
-
-        this.setState({
-          items: itemsNew,
-          deletedsOrder: newItemDelete,
-        });
-        this.TotalProduct(itemsNew);
-      });
-    } else {
-      const indexUpdate2 = editsOrder.findIndex((obj) => obj.ID === ID);
-      const Qty = (items[indexUpdate].Qty = hisQty - 1);
-      items[indexUpdate].ToPay =
-        items[indexUpdate].Qty * (PriceOrder > 0 ? PriceOrder : Price);
-
-      let newItemEdits = [];
-      if (indexUpdate2 < 0) {
-        const itemEdits = {
-          ID: ID,
-          Qty: Qty,
-        };
-        newItemEdits = [...editsOrder, itemEdits];
-        this.setState({
-          editsOrder: newItemEdits,
-          items: items,
-        });
-      } else {
-        editsOrder[indexUpdate2].Qty = Qty;
-        this.setState({
-          editsOrder: editsOrder,
-          items: items,
-        });
-      }
-
-      this.TotalProduct(items);
-      this.delayedClick();
+    if (item.Qty === 1) {
+      this.onDelete(item);
+      return;
     }
+    const infoUser = getUser();
+    const self = this;
+    var bodyPost = new FormData();
+    bodyPost.append("cmd", "qty_OrderAdd");
+    bodyPost.append("qty", item.Qty - 1);
+    bodyPost.append("oid", item.ID);
+    bodyPost.append("OrderAddID", item.OrderID);
+    self.$f7.preloader.show();
+
+    ShopDataService.addQtyProduct({
+      USN: infoUser.MobilePhone,
+      PWD: getPassword(),
+      data: bodyPost,
+    }).then(() => {
+      this.getOrder(() => {
+        self.$f7.preloader.hide();
+      });
+    });
   };
 
-  onDelete = (ID) => {
-    const $$this = this;
-    const { items, deletedsOrder } = this.state;
-    const indexUpdate = items.findIndex((obj) => obj.ID === ID);
-    const Qty = items[indexUpdate].Qty;
-    if (indexUpdate < 0) return;
-    $$this.$f7.dialog.confirm("Xóa sản phẩm này ?", () => {
-      const itemsNew = items.filter((item) => item.ID !== ID);
-      const itemDelete = {
-        ID: ID,
-        Qty: Qty,
-      };
-      let newItemDelete = [...deletedsOrder, itemDelete];
+  onDelete = (item) => {
+    const infoUser = getUser();
+    const self = this;
+    self.$f7.dialog.confirm("Xóa sản phẩm này ?", () => {
+      var bodyPost = new FormData();
+      bodyPost.append("cmd", "delete_OrderAdd");
+      bodyPost.append("oid", item.ID);
+      bodyPost.append("OrderAddID", item.OrderID);
+      self.$f7.preloader.show();
 
-      this.setState({
-        items: itemsNew,
-        deletedsOrder: newItemDelete,
+      ShopDataService.deleteOrderItem({
+        USN: infoUser.MobilePhone,
+        PWD: getPassword(),
+        data: bodyPost,
+      }).then(() => {
+        this.getOrder(() => {
+          self.$f7.preloader.hide();
+        });
       });
-      this.TotalProduct(itemsNew);
-      this.delayedClick();
     });
   };
 
   componentDidMount() {
     this.getOrder();
+    this.getWalletTotal();
   }
+
+  getWalletTotal = (callback) => {
+    const infoUser = getUser();
+    userService
+      .getWalletTotal({
+        MemberID: infoUser.ID,
+        USN: infoUser.MobilePhone,
+        PWD: getPassword(),
+      })
+      .then(({ data }) => {
+        this.setState({
+          WalletMe: data?.Money || 0,
+        });
+        callback && callback();
+      });
+  };
 
   handleVcode = (item) => {
     const { editsOrder, deletedsOrder } = this.state;
@@ -286,7 +280,7 @@ export default class extends React.Component {
     }
   };
 
-  getOrder = () => {
+  getOrder = (callback) => {
     const infoUser = getUser();
     if (!infoUser) {
       this.$f7router.navigate("/login/");
@@ -294,29 +288,21 @@ export default class extends React.Component {
     }
 
     const data = {
-      order: {
-        ID: 0,
-        SenderID: infoUser.ID,
-        VCode: null,
-      },
-      addProps: "ProdTitle",
+      USN: infoUser.MobilePhone,
+      PWD: getPassword(),
+      OrderID: getOrderAddID(),
     };
-    ShopDataService.getUpdateOrder(data)
+    ShopDataService.getOrder(data)
       .then((response) => {
-        const data = response.data.data;
-        if (response.data.success) {
-          //Total
-          this.TotalProduct(data.items);
+        if (response.status === 200) {
+          const { Items, Order, Money } = response.data;
           this.setState({
-            dfItem: data.dfItem,
-            items: data.items.reverse(),
-            order: data.order,
+            items: Items,
+            order: Order,
             isLoading: false,
-            VCode: data.order && data.order?.VoucherCode,
-            VDiscount: data.order?.Voucher?.Discount,
-            WalletMe: data.mm,
-            voucherList: data.vouchers,
+            WalletPaySuccess: Money,
           });
+          callback && callback();
         }
       })
       .catch((er) => console.log(er));
@@ -407,34 +393,54 @@ export default class extends React.Component {
   };
 
   onSearchVoucher = (e) => {
-    const { order, voucherSearch } = this.state;
+    const { voucherSearch, items } = this.state;
+    const self = this;
     e.preventDefault();
-    if (order.ID) {
+    if (items && items.length > 0) {
       this.setState({
         loadingBtn: true,
       });
-      const dataSubmit = {
-        orderId: order.ID,
-        vcode: voucherSearch,
-      };
-      ShopDataService.searchVoucher(dataSubmit)
-        .then(({ data }) => {
-          if (data.error) {
-            toast.error(data.error, {
-              position: toast.POSITION.TOP_LEFT,
-              autoClose: 2000,
-            });
-            this.setState({
-              loadingBtn: false,
-            });
-            return false;
-          }
-          this.handleVcode({ Code: voucherSearch });
+      const infoUser = getUser();
+      var bodyPost = new FormData();
+      bodyPost.append("cmd", "voucher_OrderAdd");
+      bodyPost.append("vcode", voucherSearch);
+      bodyPost.append("type", "use");
+      bodyPost.append("OrderAddID", getOrderAddID());
+      self.$f7.preloader.show();
+
+      ShopDataService.voucherOrder({
+        USN: infoUser.MobilePhone,
+        PWD: getPassword(),
+        data: bodyPost,
+      }).then((response) => {
+        if (response.data.Order.VoucherCode === "") {
+          toast.error("Mã giảm giá không hợp lệ.", {
+            position: toast.POSITION.TOP_LEFT,
+            autoClose: 2000,
+          });
           this.setState({
             loadingBtn: false,
           });
-        })
-        .catch((error) => console.log(error));
+          self.$f7.preloader.hide();
+        } else {
+          ShopDataService.voucherByOrder({
+            USN: infoUser.MobilePhone,
+            PWD: getPassword(),
+            Voucher: response.data.Order.VoucherCode,
+            OrderAddID: getOrderAddID(),
+          }).then(() => {
+            this.getOrder(() => {
+              this.getWalletTotal(() => {
+                self.$f7.preloader.hide();
+                this.setState({
+                  loadingBtn: false,
+                  popupOpened: false,
+                });
+              });
+            });
+          });
+        }
+      });
     } else {
       toast.error("Đơn hàng không tồn tại hoặc chưa có mặt hàng.", {
         position: toast.POSITION.TOP_LEFT,
@@ -462,7 +468,7 @@ export default class extends React.Component {
   render() {
     const {
       items,
-      TotalPay,
+      order,
       popupOpened,
       VCode,
       WalletMe,
@@ -473,7 +479,8 @@ export default class extends React.Component {
       isLoading,
       isBtn,
       VDiscount,
-      Preloaders
+      Preloaders,
+      WalletPaySuccess,
     } = this.state;
 
     return (
@@ -560,14 +567,14 @@ export default class extends React.Component {
                           <div className="qty-form">
                             <button
                               className="reduction"
-                              onClick={() => this.DecreaseItem(item.ID)}
+                              onClick={() => this.DecreaseItem(item)}
                             >
                               -
                             </button>
                             <div className="qty-form__count">{item.Qty}</div>
                             <button
                               className="increase"
-                              onClick={() => this.IncrementItem(item.ID)}
+                              onClick={() => this.IncrementItem(item)}
                             >
                               +
                             </button>
@@ -575,7 +582,7 @@ export default class extends React.Component {
                         </div>
                         <div
                           className="delete"
-                          onClick={() => this.onDelete(item.ID)}
+                          onClick={() => this.onDelete(item)}
                         >
                           <AiOutlineClose />
                         </div>
@@ -649,7 +656,8 @@ export default class extends React.Component {
                   </div>
                   <div className="box">
                     <div className="box-text">
-                      {!VCode || VCode === "" ? (
+                      {console.log(order)}
+                      {!order || order?.VoucherCode === "" ? (
                         <div
                           onClick={
                             items.length > 0
@@ -686,10 +694,11 @@ export default class extends React.Component {
                             }
                           >
                             (
-                            {VDiscount && Number(VDiscount) < 100
+                            {order.VoucherCode &&
+                            Number(order.VoucherDiscount) < 100
                               ? `- ${VDiscount}%`
                               : `- ${formatPriceVietnamese(VDiscount)}đ`}
-                            ) {VCode}
+                            ) {order.VoucherCode}
                           </span>
                           <AiOutlineClose
                             onClick={() => this.handleVcode({ Code: "" })}
@@ -699,7 +708,7 @@ export default class extends React.Component {
                     </div>
                   </div>
                 </li>
-                {/* <li className="wallet">
+                <li className="wallet">
                   <div className="title">
                     <svg
                       width={18}
@@ -734,7 +743,7 @@ export default class extends React.Component {
                   </div>
                   <div className="box">
                     <div className="box-text">
-                      {WalletPaySuccess === 0 ? (
+                      {!order?.PayByMemberMoneyValue ? (
                         <div
                           onClick={
                             items.length > 0
@@ -763,27 +772,29 @@ export default class extends React.Component {
                             className="vcode"
                             onClick={() => this.setPopupWalletOpen()}
                           >
-                            -{formatPriceVietnamese(WalletPaySuccess)}
+                            {formatPriceVietnamese(
+                              order?.PayByMemberMoneyValue
+                            )}
                             <b>₫</b>
                           </span>
-                          <AiOutlineClose
+                          {/* <AiOutlineClose
                             onClick={() =>
                               this.setState({
                                 WalletPaySuccess: 0,
                                 WalletPay: 0,
                               })
                             }
-                          />
+                          /> */}
                         </div>
                       )}
                     </div>
                   </div>
-                </li> */}
+                </li>
                 <li className="total">
                   <div className="title">
                     Tổng tiền :
                     <span>
-                      {formatPriceVietnamese(TotalPay)}
+                      {formatPriceVietnamese(order?.EndPay || 0)}
                       <b>₫</b>
                     </span>
                   </div>
@@ -843,7 +854,7 @@ export default class extends React.Component {
                 </div>
               </button>
             </form>
-            {voucherList.length === 0 ? (
+            {/* {voucherList.length === 0 ? (
               <ul>
                 <li>Bạn không có mã khuyến mại.</li>
               </ul>
@@ -889,7 +900,7 @@ export default class extends React.Component {
                       </div>
                     </li>
                   ))}
-            </ul>
+            </ul> */}
           </div>
         </Popup>
 

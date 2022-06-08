@@ -52,6 +52,9 @@ class UserService {
     getVoucher(memberid) {
         return http.post(`/app/index.aspx?cmd=voucherandaff23&mid=${memberid}`);
     }
+    getWalletTotal({ MemberID, USN, PWD }) {
+        return http.get(`/app/index.aspx?cmd=money&mid=${MemberID}&USN=${USN}&PWD=${PWD}&IsUser=0`);
+    }
     getWallet(data) {
         return http.post(`/services/preview.aspx?cmd=list_money`, data);
     }

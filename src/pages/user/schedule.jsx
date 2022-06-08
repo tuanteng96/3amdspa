@@ -524,7 +524,7 @@ export default class extends React.Component {
                       ))}
                   </div>
                 </div>
-                <div className="sheet-service-body__athome">
+                {/* <div className="sheet-service-body__athome">
                   <div>
                     <i className="las la-home"></i> Sử dụng dịch vụ tại nhà
                   </div>
@@ -545,7 +545,7 @@ export default class extends React.Component {
                     />
                     <span />
                   </label>
-                </div>
+                </div> */}
                 <div className="sheet-service-body__note">
                   <textarea
                     onChange={this.handleNote}

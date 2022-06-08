@@ -33,8 +33,8 @@ export default class extends React.Component {
 
   componentDidMount() {
     const infoUser = getUser();
-    const infoUsername = infoUser.MobilePhone;
-    const infoMemberID = infoUser.ID;
+    const infoUsername = infoUser?.MobilePhone;
+    const infoMemberID = infoUser?.ID;
     const infoPassword = getPassword();
 
     this.getTagService(infoUsername, infoPassword, infoMemberID);

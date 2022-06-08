@@ -18,7 +18,7 @@
     height: 100%;
     position: relative;
     &-1 {
-        height: calc(100% - 98px);
+        height: calc(100% - 138px);
         box-sizing: border-box;
         overflow: auto;
     }
@@ -119,6 +119,11 @@
                 width: 100px;
                 border: 1px solid #e8e8e8;
                 box-sizing: border-box;
+                text-align: center;
+                img {
+                    height: 90px;
+                    object-fit: contain;
+                }
             }
             .info {
                 width: calc(100% - 100px);

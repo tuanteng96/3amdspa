@@ -8,6 +8,15 @@ export const setNotiID = (id) => {
         localStorage.setItem('NOTI_ID', id);
     }
     // return the user data from the storage
+export const getOrderAddID = () => {
+    const ID = localStorage.getItem('OrderAddID');
+    if (!ID) return 0;
+    else return Number(ID);
+}
+export const addOrderAddID = (id) => {
+        localStorage.setItem('OrderAddID', id);
+    }
+    // return the user data from the storage
 export const getUser = () => {
     const userStr = localStorage.getItem('user');
     if (userStr) return JSON.parse(userStr);
@@ -31,8 +40,9 @@ export const removeUserStorage = () => {
 }
 
 // set the token and user from the storage
-export const setUserStorage = (token, user) => {
+export const setUserStorage = (token, user, pwd) => {
         localStorage.setItem('token', token);
+        localStorage.setItem('password', pwd);
         localStorage.setItem('user', JSON.stringify(user));
         //localStorage.setItem('password', password);
     }

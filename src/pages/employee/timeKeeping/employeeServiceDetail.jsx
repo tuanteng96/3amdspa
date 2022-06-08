@@ -399,14 +399,14 @@ export default class employeeServiceDetail extends React.Component {
                     )}
                   </span>
                 </li>
-                <li>
+                {/* <li>
                   <span>Công nợ</span>
                   <span>
                     {formatPriceVietnamese(
                       itemDetail && itemDetail.member.Present.no
                     )}
                   </span>
-                </li>
+                </li> */}
                 {itemDetail && itemDetail.Status === "done" ? (
                   <li>
                     <span className="w-100">Ghi chú</span>

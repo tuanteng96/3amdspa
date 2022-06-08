@@ -51,16 +51,14 @@ export default class employeeStatistical extends React.Component {
 
   basicSalary = (dataSalary) => {
     let value = 0; //luong du kien
-    value += dataSalary.CHAM_CONG_TINH_LUONG
-      ? dataSalary.LUONG_CHAM_CONG || 0
-      : dataSalary.LUONG_CO_BAN || 0;
+    value += dataSalary.UserSalaryConfig[0].Value;
 
     value += this.SalaryServices(dataSalary.SalaryServices);
     value += this.numTotal(dataSalary.BonusSales);
     value += this.numTotal(dataSalary.Bonus);
     value -= this.numTotal(dataSalary.NGAY_NGHI);
     value -= this.numTotal(dataSalary.PHAT);
-    value += dataSalary.PHU_CAP;
+    value += dataSalary.UserSalaryConfig[1].Value || 0;
     value += dataSalary?.THUONG_HOA_HONG_DOANH_SO?.Value || 0;
     return value;
   };
@@ -148,7 +146,7 @@ export default class employeeStatistical extends React.Component {
         step: 1,
       },
     };
-
+    console.log(dataSalary);
     return (
       <Page
         name="employee-statistical"
@@ -220,27 +218,32 @@ export default class employeeStatistical extends React.Component {
                     <div className="td w-2">Lương cơ bản</div>
                     <div className="td w-3">
                       {dataSalary &&
-                        formatPriceVietnamese(dataSalary.LUONG_CO_BAN)}
+                        formatPriceVietnamese(
+                          dataSalary.UserSalaryConfig[0].Value
+                        )}
                     </div>
                   </div>
                   <div className="tr">
                     <div className="td w-1">2</div>
                     <div className="td w-2">Ngày công yêu cầu</div>
                     <div className="td w-3">
-                      {dataSalary && dataSalary.NGAY_CONG}
+                      {dataSalary.UserSalaryConfig[2].Value}
                     </div>
                   </div>
                   <div className="tr">
                     <div className="td w-1">3</div>
                     <div className="td w-2">Phụ cấp</div>
                     <div className="td w-3">
-                      {dataSalary && formatPriceVietnamese(dataSalary.PHU_CAP)}
+                      {dataSalary &&
+                        formatPriceVietnamese(
+                          dataSalary.UserSalaryConfig[1].Value
+                        )}
                     </div>
                   </div>
                 </div>
               </div>
               <div className="employee-statistical__item">
-                <div className="title">Phạt</div>
+                <div className="title">Ngày nghỉ / Phạt</div>
                 <div className="head">
                   <div className="tr">
                     <div className="td w-1">STT</div>
@@ -422,65 +425,6 @@ export default class employeeStatistical extends React.Component {
                   </div>
                 </div>
               </div>
-              {((dataSalary && dataSalary?.DOANH_SO?.length > 0) ||
-                (dataSalary.CHI_LUONG &&
-                  dataSalary.CHI_LUONG.length === 0)) && (
-                <div className="employee-statistical__item">
-                  <div className="title">
-                    Doanh số bán hàng (
-                    <span>{dataSalary && dataSalary?.DOANH_SO?.length}</span>)
-                  </div>
-                  <div className="head">
-                    <div className="tr">
-                      <div className="td w-1">STT</div>
-                      <div className="td w-2">Hạng mục</div>
-                      <div className="td w-3">Giá trị</div>
-                    </div>
-                  </div>
-                  <div className="tbody">
-                    {dataSalary?.DOANH_SO &&
-                      dataSalary.DOANH_SO.map((item, index) => (
-                        <div className="tr" key={index}>
-                          <div className="td w-1">{index + 1}</div>
-                          <div className="td w-2">
-                            {item.Desc || "Doanh số"} - ({" "}
-                            {moment(item.CreateDate).format("llll")} )
-                            <div>{item.ProdTitle}</div>
-                          </div>
-                          <div className="td w-3">
-                            {formatPriceVietnamese(item.Value)}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                  <div className="tfooter">
-                    <div className="tr">
-                      <div className="td">Tổng</div>
-                      <div className="td">
-                        {formatPriceVietnamese(
-                          this.numTotal(dataSalary?.DOANH_SO)
-                        )}
-                      </div>
-                    </div>
-                    {dataSalary.CHI_LUONG && dataSalary.CHI_LUONG.length === 0 && (
-                      <div className="tr">
-                        <div className="td">Dự kiến thưởng KPI</div>
-                        <div className="td">
-                          {dataSalary?.THUONG_HOA_HONG_DOANH_SO?.Bonus > 0 && (
-                            <span style={{ paddingRight: "8px" }}>
-                              ({dataSalary?.THUONG_HOA_HONG_DOANH_SO?.Bonus}%)
-                            </span>
-                          )}
-                          {dataSalary &&
-                            formatPriceVietnamese(
-                              dataSalary?.THUONG_HOA_HONG_DOANH_SO?.Value || 0
-                            )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
               <div className="employee-statistical__item">
                 <div className="title">
                   Thưởng (<span>{dataSalary && dataSalary.Bonus.length}</span>)
@@ -606,45 +550,12 @@ export default class employeeStatistical extends React.Component {
                       </div>
                     </div>
                     <div className="tr">
-                      <div className="td">Giữ lương</div>
-                      <div className="td">
-                        {dataSalary &&
-                          formatPriceVietnamese(
-                            dataSalary.TY_LE_GIU_LUONG > 100
-                              ? dataSalary.TY_LE_GIU_LUONG
-                              : Math.ceil(
-                                  (this.basicSalary(dataSalary) / 100) *
-                                    dataSalary.TY_LE_GIU_LUONG
-                                )
-                          )}
-                      </div>
-                    </div>
-                    <div className="tr">
-                      <div className="td">Tạm ứng còn lại</div>
-                      <div className="td">
-                        {dataSalary &&
-                          formatPriceVietnamese(
-                            Math.abs(this.numTotal(dataSalary.TAM_UNG)) -
-                              Math.abs(this.numTotal(dataSalary.THU_HOAN_UNG))
-                          )}
-                      </div>
-                    </div>
-                    <div className="tr">
                       <div className="td">Lương thực nhận</div>
                       <div className="td">
                         {dataSalary &&
                           formatPriceVietnamese(
                             this.basicSalary(dataSalary) -
-                              (dataSalary.TY_LE_GIU_LUONG > 100
-                                ? dataSalary.TY_LE_GIU_LUONG
-                                : Math.ceil(
-                                    (this.basicSalary(dataSalary) / 100) *
-                                      dataSalary.TY_LE_GIU_LUONG
-                                  )) -
-                              (Math.abs(this.numTotal(dataSalary.TAM_UNG)) -
-                                Math.abs(
-                                  this.numTotal(dataSalary.THU_HOAN_UNG)
-                                ))
+                              Math.abs(dataSalary.TON_TAM_UNG || 0)
                           )}
                       </div>
                     </div>

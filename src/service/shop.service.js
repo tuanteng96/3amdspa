@@ -38,6 +38,27 @@ class ShopDataService {
     getProd() {
         return http.get(`/app/index.aspx?cmd=ProdService&token=${getToken()}`);
     }
+    addProduct({USN, PWD, data}) {
+        return http.post(`/app/index.aspx?cmd=add_OrderAdd&USN=${USN}&PWD=${PWD}&IsUser=0`,data)
+    }
+    addQtyProduct({USN, PWD, data}) {
+        return http.post(`/app/index.aspx?cmd=qty_OrderAdd&USN=${USN}&PWD=${PWD}&IsUser=0`,data)
+    }
+    deleteOrderItem({USN, PWD, data}) {
+        return http.post(`/app/index.aspx?cmd=delete_OrderAdd&USN=${USN}&PWD=${PWD}&IsUser=0`,data)
+    }
+    payWalletOrder({USN, PWD, data}) {
+        return http.post(`/app/index.aspx?cmd=membermoney_OrderAdd&USN=${USN}&PWD=${PWD}&IsUser=0`,data)
+    }
+    voucherOrder({USN, PWD, data}) {
+        return http.post(`/app/index.aspx?cmd=voucher_OrderAdd&USN=${USN}&PWD=${PWD}&IsUser=0`,data)
+    }
+    voucherByOrder({USN, PWD, OrderAddID, Voucher}) {
+        return http.get(`/api/v1/?cmd=order_by_voucher&vcode=${Voucher}&USN=${USN}&PWD=${PWD}&OrderAddID=${OrderAddID}`)
+    }
+    getOrder({ USN, PWD, OrderID }) {
+        return http.get(`/app/index.aspx?cmd=getOrder&OrderID=${OrderID}&USN=${USN}&PWD=${PWD}&IsUser=0`);
+    }
     getUpdateOrder(data) {
         return http.post(`/api/v3/orderclient?cmd=get&token=${getToken()}`, data);
     }

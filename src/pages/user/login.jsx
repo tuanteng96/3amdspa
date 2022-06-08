@@ -51,7 +51,7 @@ export default class extends React.Component {
         } else {
           const userData = response.data;
           const token = userData.token;
-          setUserStorage(token, userData);
+          setUserStorage(token, userData, password);
           SEND_TOKEN_FIREBASE().then(async (response) => {
             if (!response.error && response.Token) {
               await UserService.authSendTokenFirebase({

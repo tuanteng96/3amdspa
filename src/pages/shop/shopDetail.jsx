@@ -5,7 +5,14 @@ import {
   checkSale,
   percentagesSale,
 } from "../../constants/format";
-import { getUser, setViewed, getStockIDStorage } from "../../constants/user";
+import {
+  getUser,
+  setViewed,
+  getStockIDStorage,
+  getOrderAddID,
+  getPassword,
+  addOrderAddID,
+} from "../../constants/user";
 import ShopDataService from "./../../service/shop.service";
 import CartToolBar from "../../components/CartToolBar";
 import {
@@ -192,7 +199,7 @@ export default class extends React.Component {
       isProbably: true,
     });
   };
-  orderSubmit = () => {
+  orderSubmit = async () => {
     //code here
     const infoUser = getUser();
     const getStock = getStockIDStorage();
@@ -202,46 +209,29 @@ export default class extends React.Component {
       return false;
     } else {
       const { arrProduct, quantity } = this.state;
+      var bodyPostOrder = new FormData();
+      bodyPostOrder.append("cmd", "add_OrderAdd");
+      bodyPostOrder.append("ProdID", arrProduct.ID);
+      bodyPostOrder.append("OrderAddID", getOrderAddID());
       const self = this;
       self.$f7.preloader.show();
       this.setStateLoading(true);
-      const data = {
-        order: {
-          ID: 0,
-          SenderID: infoUser.ID,
-          VCode: "",
-          Tinh: 5,
-          Huyen: 37,
-          MethodPayID: 1,
-        },
-        adds: [
-          {
-            ProdID: arrProduct.ID,
-            Qty: quantity,
-            PriceOrder:
-              arrProduct.PriceSale < 0
-                ? arrProduct.PriceProduct
-                : arrProduct.PriceSale,
-          },
-        ],
-        forceStockID: getStock,
-      };
 
-      ShopDataService.getUpdateOrder(data)
-        .then((response) => {
-          if (response.data.success) {
-            self.$f7.preloader.hide();
-            self.setStateLoading(false);
-            toast.success("Thêm mặt hàng vào giỏ hàng thành công !", {
-              position: toast.POSITION.TOP_LEFT,
-              autoClose: 3000,
-            });
-            this.$f7router.navigate("/pay/");
-          }
-        })
-        .catch((e) => {
-          console.log(e);
+      const resultOrder = await ShopDataService.addProduct({
+        USN: infoUser.MobilePhone,
+        PWD: getPassword(),
+        data: bodyPostOrder,
+      });
+      if (resultOrder.status === 200) {
+        self.$f7.preloader.hide();
+        self.setStateLoading(false);
+        toast.success("Thêm mặt hàng vào giỏ hàng thành công !", {
+          position: toast.POSITION.TOP_LEFT,
+          autoClose: 3000,
         });
+        addOrderAddID(resultOrder.data.OrderAddID);
+        this.$f7router.navigate("/pay/");
+      }
     }
   };
 
@@ -848,9 +838,9 @@ export default class extends React.Component {
             <div className="page-toolbar__order">
               <button
                 className={`page-btn-order btn-submit-order ${
-                  statusLoading ? "loading" : ""
+                  isLoading ? "loading" : ""
                 } ${arrProductCurrent.IsDisplayPrice === 0 && "btn-no-click"}`}
-                onClick={() => this.openSheet()}
+                onClick={() => this.orderSubmit()}
               >
                 <span>Đặt hàng</span>
                 <div className="loading-icon">
